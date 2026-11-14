@@ -32,8 +32,7 @@ I used fitpulse_events for the case's event documents. MongoDB inserted 4 sample
 
 https://github.com/fokoye4993-oss/Okoye_Favour_301904993
 
-The portfolio folders contain the SQL and JavaScript, explanations, query plans, result tables and screenshots.
-
+The portfolio folders contain the SQL and JavaScript, query plans, explanations, result tables and screenshots.
 
 <!-- PAGE BREAK -->
 
@@ -47,7 +46,7 @@ I kept member, class_session, booking, payment in separate tables so their detai
 
 ## AI-use declaration
 
-I used GitHub Copilot and the portfolio generator to help prepare the database model, scripts and explanations. The generator ran the PostgreSQL and MongoDB exercises, checked their outputs and captured the result images.  I remain responsible for checking and explaining the submitted work.
+I used GitHub Copilot and the portfolio generator to help prepare the database model, scripts and explanations. The generator ran the PostgreSQL and MongoDB exercises, checked their outputs and captured the result images. I remain responsible for checking and explaining the submitted work.
 
 ## References
 
@@ -59,4 +58,3 @@ I used GitHub Copilot and the portfolio generator to help prepare the database m
 - [MongoDB: replication](https://www.mongodb.com/docs/manual/replication/)
 - [MongoDB: sharding](https://www.mongodb.com/docs/manual/sharding/)
 - [Mermaid: ER diagrams](https://mermaid.js.org/syntax/entityRelationshipDiagram.html)
-
