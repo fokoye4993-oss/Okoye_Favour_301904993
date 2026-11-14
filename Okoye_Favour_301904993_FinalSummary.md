@@ -2,9 +2,15 @@
 
 **FitPulse (Community Fitness Gym Management System)** · Favour Okoye · Student ID 301904993
 
+**GitHub repository:** [fokoye4993-oss/Okoye_Favour_301904993](https://github.com/fokoye4993-oss/Okoye_Favour_301904993)
+
+This document summarises the five portfolio activities completed for the FitPulse case study. The records and results are fictional examples prepared for the exercises. The repository contains the implementation files, detailed explanations and supporting evidence. Before submitting this document through the LMS, ensure the repository is accessible to the assessor.
+
 ## Case study
 
-My case study is FitPulse (Community Fitness Gym Management System). I designed the database for gym members, front-desk staff and gym administrators, with separate tables named member, class_session, booking and payment. It supports these operations: record member registrations; schedule class sessions and manage bookings; record payments and review class attendance.
+FitPulse is a community fitness gym management system for members, front-desk staff and administrators. Its relational database supports member registration, class scheduling, class bookings and payment records. The core PostgreSQL design uses four related tables: `member`, `class_session`, `booking` and `payment`. Their keys and constraints represent the relationships and business rules, including valid references and booking statuses.
+
+The portfolio uses the relational design as its foundation, then explores query performance, transaction behaviour, an event-oriented NoSQL model and a proposed distributed deployment. The exercises use sample data; Portfolio 5 is a design discussion rather than a deployed cloud system.
 
 ## Portfolio 1: Database Design and Modelling
 
@@ -18,27 +24,43 @@ Figure 1. Tables, keys and relationships. PK: primary key; FK: foreign key; UK: 
 
 ## Portfolio 2: Query Processing and Optimisation
 
-I ran three SQL queries against the sample records. The join returned 2 rows and included Avery Quinn with Morning Yoga. For the index comparison, I used 25,000 separate performance rows. The median lookup time changed from 1.268 ms to 0.176 ms. Both phases returned the same records. The measured plan used the new index. These timings apply to this lookup and environment.
+I wrote SQL queries to join bookings with member and class information, filter bookings by timestamp, and count bookings by member. The sample join returned two records, illustrating how related information can be retrieved from the normalised tables.
+
+I then compared a filtered lookup before and after creating an index, using a separate table with 25,000 performance rows. In three measured runs, the median execution time changed from 1.268 ms to 0.176 ms. The execution plan changed from a sequential scan to a bitmap index scan and bitmap heap scan, and the reported buffer hits decreased from 139 to 30. Both phases returned the same records. These measurements apply to this query and environment; an index also has storage and write-maintenance costs.
+
+**Evidence:** [Query results](https://github.com/fokoye4993-oss/Okoye_Favour_301904993/blob/main/portfolio-2-query-optimisation/screenshots/Okoye_Favour_301904993_P2_QueryResults.png) · [Index comparison](https://github.com/fokoye4993-oss/Okoye_Favour_301904993/blob/main/portfolio-2-query-optimisation/screenshots/Okoye_Favour_301904993_P2_IndexComparison.png)
+
+**Materials:** [Portfolio 2 files](https://github.com/fokoye4993-oss/Okoye_Favour_301904993/tree/main/portfolio-2-query-optimisation)
 
 ## Portfolio 3: Transactions and Concurrency
 
-I used a temporary counter on booking to test COMMIT, ROLLBACK and READ COMMITTED isolation. The uncommitted update remained hidden from the other session, and ROLLBACK restored the earlier committed value. Without locking, two increments left the counter at 2. With SELECT FOR UPDATE, Session B waited for Session A and the final value was 3. The helper is confined to this exercise; the case's original business fields stay unchanged.
+I used a temporary counter associated with a booking to demonstrate transaction behaviour without changing the case study's original business fields. The exercises covered `COMMIT`, `ROLLBACK` and PostgreSQL's `READ COMMITTED` isolation level. An uncommitted update remained hidden from the other session; a later rollback restored the previous committed value.
+
+I also compared two concurrent increments. When both sessions read and update without locking, the final counter was 2 instead of the expected 3 because one increment was lost. With `SELECT FOR UPDATE`, the second session waited for the first, read the updated value and committed the expected final value of 3. This shows why a transaction may need to lock a row when concurrent changes depend on its current value.
+
+**Evidence:** [Commit and rollback](https://github.com/fokoye4993-oss/Okoye_Favour_301904993/blob/main/portfolio-3-transactions-concurrency/screenshots/Okoye_Favour_301904993_P3_CommitRollback.png) · [Concurrency results](https://github.com/fokoye4993-oss/Okoye_Favour_301904993/blob/main/portfolio-3-transactions-concurrency/screenshots/Okoye_Favour_301904993_P3_ConcurrencyResult.png)
+
+**Materials:** [Portfolio 3 files](https://github.com/fokoye4993-oss/Okoye_Favour_301904993/tree/main/portfolio-3-transactions-concurrency)
 
 ## Portfolio 4: NoSQL and Advanced Data Models
 
-I used fitpulse_events for the case's event documents. MongoDB inserted 4 sample events and returned the expected results for 4 queries. Validation rejected an invalid date type and a duplicate event ID. Embedded snapshots keep related details with an event, while the details field can differ by event type. These are fictional events; PostgreSQL continues to enforce its relational rules.
+I modelled FitPulse booking activity as MongoDB documents in a `fitpulse_events` collection, using `booking_created` and `booking_cancelled` event types. The documents include shared event metadata, source-record keys, embedded snapshots of related booking and class details, references, and a flexible `details` field.
 
-## Repository and evidence
+The script inserted four fictional events and ran queries by event type, source-record key and time range, as well as an aggregation counting documents by event type. Collection validation rejected an invalid date type, and the unique event identifier rejected a duplicate. The exercise illustrates the convenience of reading an event with its embedded context, balanced against duplicated snapshots that do not automatically change when relational records are updated. PostgreSQL remains the source of the relational rules in this design.
 
-https://github.com/fokoye4993-oss/Okoye_Favour_301904993
+**Evidence:** [MongoDB documents and query results](https://github.com/fokoye4993-oss/Okoye_Favour_301904993/blob/main/portfolio-4-nosql/screenshots/Okoye_Favour_301904993_P4_DocumentsAndQueries.png)
 
-The portfolio folders contain the SQL and JavaScript, query plans, explanations, result tables and screenshots.
-
-<!-- PAGE BREAK -->
+**Materials:** [Portfolio 4 files](https://github.com/fokoye4993-oss/Okoye_Favour_301904993/tree/main/portfolio-4-nosql)
 
 ## Portfolio 5: Distributed and Cloud Database Exercise
 
-I proposed three MongoDB replica members across separate failure zones. The discussion covers primary elections, majority acknowledgement, secondary lag and sharding trade-offs for fitpulse_events. Replication supports availability, while backups address recovery. PostgreSQL needs its own availability plan. This is the permitted discussion option; no live replica set or failover test was deployed.
+I proposed a three-member MongoDB replica set distributed across three availability zones for the event collection, while keeping FitPulse's relational records in PostgreSQL. The design explains primary elections, majority acknowledgement, secondary replication lag and the limits of availability during network partitions. It also distinguishes replication, which supports availability, from backups, which are needed for recovery.
+
+The proposal considers sharding only if the event collection grows enough to justify it. It discusses how a shard key must be chosen against real query and write patterns, and why a time-only increasing key may concentrate writes. Operational requirements include private networking, authentication, least-privilege access, TLS, monitoring and tested backups. No cloud service, replica set, failover, sharding or recovery test was deployed; this portfolio is a documented design exercise. The MongoDB proposal does not provide high availability for PostgreSQL, which would need its own plan.
+
+**Evidence:** [Proposed architecture](https://github.com/fokoye4993-oss/Okoye_Favour_301904993/blob/main/portfolio-5-distributed-cloud/screenshots/Okoye_Favour_301904993_P5_ProposedDesign.png)
+
+**Materials:** [Portfolio 5 files](https://github.com/fokoye4993-oss/Okoye_Favour_301904993/tree/main/portfolio-5-distributed-cloud)
 
 ## Individual reflection
 
